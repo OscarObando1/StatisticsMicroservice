@@ -1,0 +1,10 @@
+services:
+  mysql:
+    image: mysql:8
+    container_name: statistics-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: toor
+      MYSQL_DATABASE: statistics_db
+    ports:
+      - "3306:3306"
