@@ -31,5 +31,5 @@ public class TrainingRecordDto {
     private Integer trainingDuration;
 
 
-    private ActionType actionType;
+    private String actionType;
 }
