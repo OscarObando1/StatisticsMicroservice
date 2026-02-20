@@ -28,11 +28,11 @@ public class StatisticsConsumer {
     public void consume(String key, String payload) throws JsonProcessingException {
         try {
             TrainingRecordDto dto = objectMapper.readValue(payload, TrainingRecordDto.class);
-            log.info("Mensaje recibido del topic {} - trainer: {}", statisticsTopic, dto.getTrainerUsername());
+            log.info("Message received  topic {} - trainer: {}", statisticsTopic, dto.getTrainerUsername());
             trainingStatisticsService.addTrainingRecord(dto);
-            log.debug("TrainingRecordDto procesado correctamente para {}", dto.getTrainerUsername());
+            log.debug("TrainingRecordDto processed {}", dto.getTrainerUsername());
         } catch (Exception ex) {
-            log.error("Error procesando mensaje de Kafka (key: {}): {}", key, ex.getMessage(), ex);
+            log.error("Error processed message Kafka (key: {}): {}", key, ex.getMessage(), ex);
             throw ex;
         }
     }
