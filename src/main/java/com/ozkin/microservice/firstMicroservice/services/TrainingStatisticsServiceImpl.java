@@ -5,11 +5,8 @@ import com.ozkin.microservice.firstMicroservice.entities.StatisticsTrainer;
 import com.ozkin.microservice.firstMicroservice.entities.TrainingMonth;
 import com.ozkin.microservice.firstMicroservice.entities.TrainingYear;
 import com.ozkin.microservice.firstMicroservice.repositories.StatisticsTrainerRepository;
-import com.ozkin.microservice.firstMicroservice.repositories.TrainingMonthRepository;
-import com.ozkin.microservice.firstMicroservice.repositories.TrainingYearRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -18,11 +15,8 @@ import java.util.Optional;
 public class TrainingStatisticsServiceImpl implements TrainingStatisticsService {
 
     private final StatisticsTrainerRepository trainerRepository;
-    private final TrainingYearRepository yearRepository;
-    private final TrainingMonthRepository monthRepository;
 
     @Override
-    @Transactional
     public void addTrainingRecord(TrainingRecordDto dto) {
         Integer durationBox = dto.getTrainingDuration();
         int duration = durationBox != null ? durationBox : 0;
@@ -41,8 +35,7 @@ public class TrainingStatisticsServiceImpl implements TrainingStatisticsService 
         int yearSummary = (yearSummaryBox != null ? yearSummaryBox : 0) + duration;
         year.setTrainingSummaryDuration(yearSummary);
 
-        monthRepository.save(month);
-        yearRepository.save(year);
+        trainerRepository.save(trainer);
     }
 
     private StatisticsTrainer findOrCreateTrainer(TrainingRecordDto dto) {
@@ -59,29 +52,35 @@ public class TrainingStatisticsServiceImpl implements TrainingStatisticsService 
     }
 
     private TrainingYear findOrCreateYear(StatisticsTrainer trainer, int yearValue) {
-        Optional<TrainingYear> existing = yearRepository.findByTrainerAndYear(trainer, yearValue);
+        if (trainer.getYears() == null) {
+            trainer.setYears(new java.util.ArrayList<>());
+        }
+        Optional<TrainingYear> existing = trainer.getYears().stream()
+                .filter(y -> yearValue == (y.getYear() != null ? y.getYear() : 0))
+                .findFirst();
         if (existing.isPresent()) {
             return existing.get();
         }
         TrainingYear year = new TrainingYear();
         year.setYear(yearValue);
-        year.setTrainer(trainer);
         year.setTrainingSummaryDuration(0);
-        year = yearRepository.save(year);
         trainer.getYears().add(year);
         return year;
     }
 
     private TrainingMonth findOrCreateMonth(TrainingYear year, int monthNumber) {
-        Optional<TrainingMonth> existing = monthRepository.findByTrainingYearAndMonthNumber(year, monthNumber);
+        if (year.getMonths() == null) {
+            year.setMonths(new java.util.ArrayList<>());
+        }
+        Optional<TrainingMonth> existing = year.getMonths().stream()
+                .filter(m -> monthNumber == (m.getMonthNumber() != null ? m.getMonthNumber() : 0))
+                .findFirst();
         if (existing.isPresent()) {
             return existing.get();
         }
         TrainingMonth month = new TrainingMonth();
         month.setMonthNumber(monthNumber);
         month.setDuration(0);
-        month.setTrainingYear(year);
-        month = monthRepository.save(month);
         year.getMonths().add(month);
         return month;
     }
